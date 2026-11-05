@@ -1,5 +1,5 @@
 # King of the Hill (KoTH)
-**Praktisk vejledning · IT-sikkerhed · Zealand**
+**Praktisk vejledning**
 
 ## Hvad er CTF og KoTH?
 
