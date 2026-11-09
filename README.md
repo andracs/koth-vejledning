@@ -122,12 +122,19 @@ Efter runden skal du kunne besvare tre spørgsmål:
 
 # En venlig KOTH spillers history fra undervisningen
 map -Pn -T4 --top-ports 1000 -sV 10.10.47.66 -oN nmap.txt
+
 ftp 10.10.47.66
+
 smbclient -N -L //10.10.47.66
+
 chmod 600 id_rsa
+
 ssh -i id_rsa ashu@10.10.47.66
+
 sudo -l
+
 nc 10.10.47.66 9001
+
 cat /home/skidy/homework/server1.py
 D=$(mktemp -d)
 cd $D
