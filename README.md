@@ -7,6 +7,8 @@
 
 **King of the Hill (KoTH)** er en særlig CTF-form: Alle angriber den samme maskine. Målet er at opnå administratorrettigheder (*root/SYSTEM*), blive konge og derefter forsvare sin position mod de andre deltagere.
 
+Link: https://tryhackme.com/games/koth
+
 På TryHackMe varer en runde 60 minutter. Man får point for at være konge (10 point pr. hele minut) og for at finde flags.
 
 **Hvorfor KoTH?** Fordi du skal kombinere offensive og defensive færdigheder under tidspres. Du lærer at undersøge ukendte systemer, identificere sårbarheder, udnytte dem og efterfølgende lukke dem. Det minder om virkelige sikkerhedshændelser, blot komprimeret til en konkurrence.
